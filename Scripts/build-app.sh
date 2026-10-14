@@ -22,13 +22,28 @@ if [[ -z "${BUILD_SIGNING_IDENTITY}" || "${BUILD_SIGNING_IDENTITY}" == "-" ]]; t
 fi
 
 cd "${ROOT_DIR}"
-swift build -c "${CONFIGURATION}"
-BIN_DIR="$(swift build -c "${CONFIGURATION}" --show-bin-path)"
+BUILD_ARGS=(-c "${CONFIGURATION}")
+if [[ "${UNIVERSAL:-0}" == "1" ]]; then
+    BUILD_ARGS+=(--arch arm64 --arch x86_64)
+fi
+swift build "${BUILD_ARGS[@]}"
+BIN_DIR="$(swift build "${BUILD_ARGS[@]}" --show-bin-path)"
 
 rm -rf "${APP_DIR}"
 mkdir -p "${APP_DIR}/Contents/MacOS" "${APP_DIR}/Contents/Resources"
 cp "${BIN_DIR}/SimpleShot" "${APP_DIR}/Contents/MacOS/SimpleShot"
 cp "${ROOT_DIR}/Resources/Info.plist" "${APP_DIR}/Contents/Info.plist"
 
-codesign --force --sign "${BUILD_SIGNING_IDENTITY}" "${APP_DIR}"
+if [[ -n "${VERSION:-}" ]]; then
+    /usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString ${VERSION}" "${APP_DIR}/Contents/Info.plist"
+fi
+if [[ -n "${BUILD_NUMBER:-}" ]]; then
+    /usr/libexec/PlistBuddy -c "Set :CFBundleVersion ${BUILD_NUMBER}" "${APP_DIR}/Contents/Info.plist"
+fi
+SIGN_ARGS=(--force --sign "${BUILD_SIGNING_IDENTITY}")
+if [[ "${DISTRIBUTION:-0}" == "1" ]]; then
+    SIGN_ARGS+=(--options runtime --timestamp --entitlements "${ROOT_DIR}/Resources/Distribution.entitlements")
+fi
+codesign "${SIGN_ARGS[@]}" "${APP_DIR}"
+codesign --verify --deep --strict "${APP_DIR}"
 echo "Built ${APP_DIR}"

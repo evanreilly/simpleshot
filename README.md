@@ -2,9 +2,26 @@
 
 SimpleShot is a native macOS menu-bar screenshot utility written in Swift and SwiftUI.
 
+[![Download preview](https://img.shields.io/badge/Download_macOS_Preview-Apple_Silicon_%2B_Intel-147EFB?style=for-the-badge&logo=apple&logoColor=white)](https://github.com/evanreilly/simpleshot/releases/download/v0.1.0-preview.1/SimpleShot.zip)
+
 ## Installation
 
-Requires **macOS 14 or later** and **Xcode 16 or later** (Swift 6). There is currently no notarized binary release; install by building from source. The build targets your Mac’s architecture.
+Requires **macOS 14 or later**. Install the prebuilt Apple Silicon + Intel preview with [Homebrew](https://brew.sh):
+
+```sh
+brew install --cask evanreilly/tap/simpleshot
+open -a SimpleShot
+```
+
+**This preview is not notarized.** Apple Developer enrollment is pending. If macOS blocks the first launch, open **System Settings → Privacy & Security → Open Anyway** for SimpleShot, then confirm Open. Only approve the app if you trust this project's download. See [Apple's instructions](https://support.apple.com/en-us/102445). Managed Macs may not permit this exception.
+
+Alternatively, use the download button, unzip, and drag **SimpleShot.app** into **Applications**. Neither binary installation method requires Xcode. Existing source-build users should quit SimpleShot and move their previous app aside before installing with Homebrew; keep a backup until the preview works.
+
+Updates can require Screen Recording approval again while preview builds use ad-hoc signing. A notarized release will replace this preview once Apple activates the account. Homebrew preserves macOS quarantine protections.
+
+### Build from source instead
+
+Source builds require **Xcode 16 or later** (Swift 6) and target your Mac's architecture.
 
 1. Install and open Xcode to finish its setup. Select Xcode under **Xcode → Settings → Locations → Command Line Tools**.
 2. Add your Apple account under **Xcode → Settings → Accounts → Manage Certificates**, and create an **Apple Development** certificate if needed.
@@ -34,7 +51,15 @@ SimpleShot lives in the **menu bar**, not the Dock. Open **Settings…** from it
 
 ### Updating
 
-Quit SimpleShot, run `git pull --ff-only`, rebuild with the **same signing certificate**, then repeat the install and launch commands. Keep the same app location and certificate to avoid unnecessary Screen Recording permission resets. See **Build an app bundle** below for signing details and a disposable ad-hoc build option.
+For Homebrew installs, quit SimpleShot and run:
+
+```sh
+brew update
+brew upgrade --cask evanreilly/tap/simpleshot
+open -a SimpleShot
+```
+
+For manual downloads, quit and replace the app in Applications. For source builds, run `git pull --ff-only`, rebuild with the **same signing certificate**, and repeat the source install steps. See [distribution setup](DISTRIBUTION.md) for packaging and notarization details.
 
 ### Shortcuts
 
