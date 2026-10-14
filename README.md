@@ -2,13 +2,55 @@
 
 SimpleShot is a native macOS menu-bar screenshot utility written in Swift and SwiftUI.
 
+## Installation
+
+Requires **macOS 14 or later** and **Xcode 16 or later** (Swift 6). There is currently no notarized binary release; install by building from source. The build targets your Mac’s architecture.
+
+1. Install and open Xcode to finish its setup. Select Xcode under **Xcode → Settings → Locations → Command Line Tools**.
+2. Add your Apple account under **Xcode → Settings → Accounts → Manage Certificates**, and create an **Apple Development** certificate if needed.
+3. Clone and build, replacing the example signing identity with your certificate’s exact name:
+
+   ```sh
+   git clone https://github.com/evanreilly/simpleshot.git
+   cd simpleshot
+   security find-identity -v -p codesigning
+   SIGNING_IDENTITY='Apple Development: Your Name (CERTIFICATE ID)' ./Scripts/build-app.sh
+   ```
+
+4. Install and launch:
+
+   ```sh
+   mkdir -p "$HOME/Applications"
+   ditto build/SimpleShot.app "$HOME/Applications/SimpleShot.app"
+   open "$HOME/Applications/SimpleShot.app"
+   ```
+
+SimpleShot lives in the **menu bar**, not the Dock. Open **Settings…** from its menu to finish setup:
+
+- Use **Request Screen Access**, then enable SimpleShot under **System Settings → Privacy & Security → Screen Recording** (or **Screen & System Audio Recording**, depending on macOS version). Quit and reopen if macOS requests it.
+- Under **Keyboard → Keyboard Shortcuts → Screenshots**, disable Apple’s conflicting ⌘⇧3 and ⌘⇧4 shortcuts. SimpleShot does not change them automatically. Resolve any other app’s ⌘⇧2 conflict too, then click **Check Shortcuts** in SimpleShot Settings.
+- Choose your screenshot folder. **Change Default Location** in the preview changes and remembers it.
+- Allow Finder control under **Privacy & Security → Automation** when prompted to enable Finder list view and sorting. This is separate from Screen Recording. Screenshot shortcuts do not need Accessibility permission.
+
+### Updating
+
+Quit SimpleShot, run `git pull --ff-only`, rebuild with the **same signing certificate**, then repeat the install and launch commands. Keep the same app location and certificate to avoid unnecessary Screen Recording permission resets. See **Build an app bundle** below for signing details and a disposable ad-hoc build option.
+
+### Shortcuts
+
+| Shortcut | Action |
+| --- | --- |
+| ⌘⇧4 | Capture a region, save it, and copy it to the clipboard. |
+| ⌘⇧3 | Reopen the last screenshot with its editable annotations. |
+| ⌘⇧2 | Draw and adjust a precision capture frame; Enter confirms. |
+
 ## Current behavior
 
 - Precision capture edges resize on a single axis: left/right use the horizontal resize cursor, top/bottom use the vertical resize cursor. Hover and dragging share a generous edge target; corners retain priority for two-axis resizing.
 - **⌘⇧2** opens precision capture: draw a region, resize any of its four corners or drag elsewhere on that display to move it, then press Enter or click the attached Capture button. Once drawn, the cursor stays an open hand; clicking elsewhere cannot replace the frame. Press **⌘⇧2 again** to reset and draw a fresh region. Arrow keys nudge by one screen point (Shift: ten); Escape cancels. Like quick capture, the region stays on one display.
 - **⌘⇧4** opens a crosshair region selector, saves the PNG, and copies it to the clipboard.
 - **⌘⇧3** opens the last screenshot without taking a new capture. Closing and reopening the editor preserves annotations, including across app restarts. A new ⌘⇧4 capture becomes the latest screenshot.
-- Clicking the editor's save path opens the screenshot folder in Finder in List View, sorted by Date Modified (newest first). macOS may request Automation permission to control Finder; if denied, the folder still opens with an explanation of how to enable it. **Change Default Location** beside it opens the folder chooser and persists the choice. **Clear Annotations** removes strokes from the current screenshot.
+- Clicking the editor's save path opens the screenshot folder in Finder in List View, sorted by Date Modified (newest first). Repeated clicks reuse SimpleShot’s own Finder window during the app session without redirecting your other windows. macOS may request Automation permission to control Finder; if denied, the folder still opens with an explanation of how to enable it. **Change Default Location** beside it opens the folder chooser and persists the choice. **Clear Annotations** removes strokes from the current screenshot.
 - Successful captures play the installed macOS `Screen Capture.aif` sound. Reopening the editor is silent.
 - The preview has Settings and mute buttons. Settings lists installed system alert sounds and system effects, with a Play Sound preview. Both sound selection and mute persist across restarts; muting also stops a currently playing sound.
 - Region capture uses an outlined precision crosshair with a live selection-size readout. Escape cancels and restores the normal cursor.
@@ -58,3 +100,22 @@ Settings checks access when opened and when returning from System Settings. A no
 
 - Requires macOS 14 or newer because capture uses ScreenCaptureKit's still-image API.
 - macOS has no supported public API for adding folders to Finder Favorites. SimpleShot reveals the selected folder so the user can drag it into the sidebar without modifying Finder's private database.
+
+## Development and contributing
+
+Open `Package.swift` in Xcode, or run:
+
+```sh
+swift build
+swift test
+```
+
+Use the bundled app for normal permission testing. Switching between Xcode, command-line executables, and differently signed bundles can change the identity macOS authorizes.
+
+Bug reports and pull requests are welcome. Include your macOS version, reproduction steps, and signing method. Keep changes focused and run `swift test` before submitting. Avoid attaching screenshots containing private information.
+
+Screenshots are saved in your chosen folder. The latest editable session is stored locally under `~/Library/Application Support/SimpleShot/`; preferences use macOS UserDefaults. Capture and annotation processing happen locally. A new capture replaces the latest editable session, while earlier exported PNGs remain in your save folder.
+
+## License
+
+[MIT](LICENSE) © 2026 Evan Reilly.
