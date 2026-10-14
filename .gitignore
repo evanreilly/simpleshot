@@ -1,0 +1,7 @@
+.DS_Store
+.signing-identity
+.build/
+build/
+DerivedData/
+*.xcuserstate
+.swiftpm/xcode/package.xcworkspace/xcuserdata/
